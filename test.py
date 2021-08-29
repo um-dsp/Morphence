@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-@author: 
-@eamil: 
+
+@author: Abderrahmen Amich
+@email:  aamich@umich.edu
 """
 
 from absl import app, flags
