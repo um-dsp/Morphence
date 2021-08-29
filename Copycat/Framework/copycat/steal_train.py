@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+"""
+
+@author: Abderrahmen Amich
+@email:  aamich@umich.edu
+"""
+
 #torch
 import torch
 import torchvision
