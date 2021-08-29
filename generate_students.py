@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-@author: 
-@eamil:
+
+@author: Abderrahmen Amich
+@email:  aamich@umich.edu
 """
+
 from absl import app, flags
 from mtd import generate_students
 from sys import argv, exit, stderr
