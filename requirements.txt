@@ -1,0 +1,9 @@
+git+https://github.com/cleverhans-lab/cleverhans.git#egg=cleverhans
+matplotlib==3.3.1
+numpy==1.19.1
+scikit-learn==0.23.2
+torch==1.6.0
+torchvision==0.7.0
+tqdm==4.48.2
+absl-py
+easydict
