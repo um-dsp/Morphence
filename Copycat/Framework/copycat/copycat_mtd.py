@@ -1,16 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun May 30 21:00:09 2021
 
 @author: Abderrahmen Amich
-"""
-
-
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Apr 12 16:15:44 2021
-
-@author: abder
+@email:  aamich@umich.edu
 """
 
 
