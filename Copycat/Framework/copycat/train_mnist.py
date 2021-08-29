@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 
-
-@author: 
+@author: Abderrahmen Amich
+@email:  aamich@umich.edu
 """
-
 
 from absl import app, flags
 from easydict import EasyDict
