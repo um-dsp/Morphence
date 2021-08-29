@@ -1,5 +1,5 @@
-# Code
-Morphence: Moving Target Defense Against Adversarial Examples
+# Morphence: Moving Target Defense Against Adversarial Examples
+
 
 ### Installation
 ```$ git clone https://github.com/Morphence/Code.git ```
