@@ -2,9 +2,9 @@
 
 
 ### Installation
-```$ git clone https://github.com/Morphence/Code.git ```
+```$ git clone https://github.com/um-dsp/Morphence.git ```
 
-```$ cd Code ```
+```$ cd Morphence ```
 
 ```$ pip install -r requirements.txt ```
 
