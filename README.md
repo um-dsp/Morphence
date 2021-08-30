@@ -1,8 +1,10 @@
 # Morphence: Moving Target Defense Against Adversarial Examples
+This code is related to our paper Morphence: Moving Target Defense Against Adversarial Exampls [paper-link-to-be-added]. The following detailed instructions can be used to reproduce our results in section 4.2 (Table 1). The user is also able to try parameters configuration other than what is adopted in the paper.
 
+A GPU hardware environment is mandatory to run the code.
 
 ### Installation
-it is required to create a separate python3 environment. Then use the following commands:
+It is required to create a separate python3 environment. Then use the following commands:
 
 ```$ git clone https://github.com/um-dsp/Morphence.git ```
 
