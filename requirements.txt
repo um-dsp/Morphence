@@ -1,9 +1,9 @@
 git+https://github.com/cleverhans-lab/cleverhans.git#egg=cleverhans
 matplotlib
 numpy
-scikit-learn
-torch
-torchvision
 tqdm
 absl-py
 easydict
+scikit-learn
+torch
+torchvision
