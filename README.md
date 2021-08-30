@@ -2,6 +2,8 @@
 
 
 ### Installation
+it is required to create a separate python3 environment. Then use the following commands:
+
 ```$ git clone https://github.com/um-dsp/Morphence.git ```
 
 ```$ cd Morphence ```
