@@ -38,7 +38,7 @@ Adversarially-trained : ```$ python test_adv.py [data_name] [attack] [batch_size
 
 ### Copycat Models
 
-The used Copycat code is an updated version of the original code provided in : https://github.com/jeiks/Stealing_DL_Models/tree/master/Framework
+The used Copycat code is a modified version of the original code provided in : https://github.com/jeiks/Stealing_DL_Models/tree/master/Framework
 
 `$ cd Copycat/Framework`
 
