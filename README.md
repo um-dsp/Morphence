@@ -15,6 +15,7 @@ It is required to create a separate python3 environment. Then use the following 
 ```$ pip install -r requirements.txt ```
 
 ### Morphence Pool Generation
+**Note**: Generating and retraining adversarially-trained models could take several hours.
 ```
 $ python generate_students.py [data_name] [batch_number] [p] [n] [lambda] [batch_size=128] [epsilon=0.3] [max_iter=50]
 ```
