@@ -15,7 +15,7 @@ It is required to create a separate python3 environment. Then use the following 
 ```$ pip install -r requirements.txt ```
 
 ### Morphence Pool Generation
-**Note**: Generating and retraining adversarially-trained models could take several hours.
+
 ```
 $ python generate_students.py [data_name] [batch_number] [p] [n] [lambda] [batch_size=128] [epsilon=0.3] [max_iter=50]
 ```
@@ -25,6 +25,7 @@ CIFAR10 example:  ``` $ python generate_students.py CIFAR10 b1 9 10 0.05 ```
 
 In order to generate 5 batches (pools of models) we execute the same command for b2, b3, b4 and b5.
 
+**Note**: Generating and retraining adversarially-trained models could take several hours. For a quicker experiment you can try lower number of adversarially-trained models. This would lead to different robustness results.
 ### Morphence Evaluation
 ```
 $ python test.py [data_name] [attack] [p] [n] [Q_max] [lamda] [batch_size=128] [epsilon=0.3] [batch_number=b1]
