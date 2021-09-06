@@ -32,7 +32,7 @@ It is important to use the same configuration adopted before for models generati
 ```[attack]``` can be: CW, FGS, SPSA or NoAttack.
 example:  ``` $ python test.py CIFAR10 CW 9 10 1000 0.05 ```
 
-### Fixed Baselines models Evaluation
+### Fixed Baseline models Evaluation
 
 Undefended : ```$ python test_base.py [data_name] [attack] [batch_size=128] [epsilon=0.3] ```
 
@@ -59,7 +59,7 @@ For CIFAR10:```$ python copycat/steal_train.py copycat_mtd_CNN_CIFAR10.pth Morph
 
 For MNIST:```$ python copycat/steal_train.py copycat_mtd_CNN_MNIST.pth Morphence MNIST```
 
-##### test model extraction of fixed models:
+##### Test model extraction of fixed models:
 
 For CIFAR10:```$ python copycat/test.py [path-to-copycat-model] [path-to-target-model] CIFAR10```
 
@@ -69,7 +69,7 @@ For MNIST:```$ python copycat/test.py [path-to-copycat-model] [path-to-target-mo
 
 [path-to-target-model] can be either the path to the base model or the adversarially trained model.
 
-##### test model extraction of Morphence:
+##### Test model extraction of Morphence:
 For CIFAR10:```$ python copycat/morph_test.py copycat_mtd_CNN_CIFAR10.pth CIFAR10```
 
 For MNIST:```$ python copycat/morph_test.py copycat_mtd_CNN_MNIST.pth MNIST```
