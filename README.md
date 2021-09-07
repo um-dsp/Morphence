@@ -49,6 +49,9 @@ For CIFAR
 Finally, unzip the models: ```unzip [data_name].zip```
 
 ### Morphence Evaluation
+
+The following command initiates a Morphence framework and performs [attack].
+
 ```
 $ python test.py [data_name] [attack] [p] [n] [Q_max] [lamda] [batch_size=128] [epsilon=0.3] [batch_number=b1]
 ```
