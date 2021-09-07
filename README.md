@@ -48,7 +48,7 @@ Finally, unzip the models: ```unzip [data_name].zip -d [data_name]```
 ```
 $ python test.py [data_name] [attack] [p] [n] [Q_max] [lamda] [batch_size=128] [epsilon=0.3] [batch_number=b1]
 ```
-**Note**: It is important to use the same configuration adopted before for models generations. In case the previously generated models are adopted, you have to use the default configuration for test.py.
+**Note**: In case **Step B** is used for model generation, you have to use the default configuration for the evaluation. Otherwise, you have to use the same configuration adopted in **Step A**.
 
 ```[attack]``` can be: CW, FGS, SPSA or NoAttack.
 example:  ``` $ python test.py CIFAR10 CW 9 10 1000 0.05 ```
