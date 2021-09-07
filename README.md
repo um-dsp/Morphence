@@ -15,7 +15,11 @@ It is required to create a separate python3 environment. Then use the following 
 ```$ pip install -r requirements.txt ```
 
 ### Morphence Pool Generation
+You can generate the pool of models from scratch **A** or you can download a previously generated student models **B**.
 
+**A: Generate from scratch**
+
+*Note*: Generating and retraining adversarially-trained models could take several hours. For a quicker experiment you can skip to step **B**.
 ```
 $ python generate_students.py [data_name] [batch_number] [p] [n] [lambda] [batch_size=128] [epsilon=0.3] [max_iter=50]
 ```
@@ -25,7 +29,16 @@ CIFAR10 example:  ``` $ python generate_students.py CIFAR10 b1 9 10 0.05 ```
 
 In order to generate 5 batches (pools of models) we execute the same command for b2, b3, b4 and b5.
 
-**Note**: Generating and retraining adversarially-trained models could take several hours. For a quicker experiment you can try lower number of adversarially-trained models (ex:  ``` $ python generate_students.py MNIST b1 1 2 0.1 ```). This would lead to different robustness results.
+**B: Use previously generated models**
+First create a folder call "experiments" (i.e ```/Morphence/experiments ```.
+Next, run the following command to download the student models:
+```
+$ cd experiments
+```
+For MNIST: ```$ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR" -O MNIST.zip && rm -rf /tmp/cookies.tx```
+
+For CIFAR ```$ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR" -O CIFAR.zip && rm -rf /tmp/cookies.tx```
+
 ### Morphence Evaluation
 ```
 $ python test.py [data_name] [attack] [p] [n] [Q_max] [lamda] [batch_size=128] [epsilon=0.3] [batch_number=b1]
