@@ -30,6 +30,7 @@ CIFAR10 example:  ``` $ python generate_students.py CIFAR10 b1 9 10 0.05 ```
 In order to generate 5 batches (pools of models) we execute the same command for b2, b3, b4 and b5.
 
 **B: Use previously generated models**
+
 First create a folder call "experiments" (i.e ```/Morphence/experiments ```.
 Next, run the following command to download the student models:
 ```
