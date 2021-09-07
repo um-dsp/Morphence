@@ -15,7 +15,7 @@ It is required to create a separate python3 environment. Then use the following 
 ```$ pip install -r requirements.txt ```
 
 ### Morphence Pool Generation
-You can generate the pool of models from scratch **A** or you can download a previously generated student models **B**.
+You can generate the pool of models from scratch **A** or you can download previously generated student models **B**.
 
 **A: Generate from scratch**
 
