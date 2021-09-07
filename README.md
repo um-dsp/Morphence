@@ -17,11 +17,11 @@ It is required to create a separate python3 environment. Then use the following 
 ```$ pip install -r requirements.txt ```
 
 ### Morphence Pool Generation
-You can generate the pool of models from scratch **A** or you can download previously generated student models **B**.
+You can generate the pool of models from scratch with **Option A** or you can download previously generated student models with **Option B**.
 
-**A: Generate from scratch**
+**Option A: Generate from scratch**
 
-*Note*: Generating and retraining adversarially-trained models could take several hours. For a quicker experiment you can skip to step **B**.
+*Note*: Generating and retraining adversarially-trained models could take several hours. For a quicker experiment you can skip to **Option B**.
 ```
 $ python generate_students.py [data_name] [batch_number] [p] [n] [lambda] [batch_size=128] [epsilon=0.3] [max_iter=50]
 ```
@@ -31,9 +31,9 @@ CIFAR10 example:  ``` $ python generate_students.py CIFAR10 b1 9 10 0.05 ```
 
 In order to generate 5 batches (pools of models) we execute the same command for b2, b3, b4 and b5.
 
-**B: Use previously generated models**
+**Option B: Use previously generated models**
 
-(Skip to Morphence Evaluation if you already used step **A**)
+(Skip to Morphence Evaluation if you already used **Option A**)
 
 First create a folder called "experiments" (i.e ```/Morphence/experiments ```.
 Next, run the following commands to download the student models:
@@ -57,7 +57,7 @@ The following command initiates a Morphence framework and performs [attack].
 ```
 $ python test.py [data_name] [attack] [p] [n] [Q_max] [lamda] [batch_size=128] [epsilon=0.3] [batch_number=b1]
 ```
-**Note**: In case **Step B** is used for model generation, you have to use the default configuration for the evaluation. Otherwise, you have to use the same configuration adopted in **Step A**.
+**Note**: In case **Option B** is used for model generation, you have to use the default configuration for the evaluation. Otherwise, you have to use the same configuration adopted in **Option A**.
 
 ```[attack]``` can be: CW, FGS, SPSA or NoAttack.
 example:  ``` $ python test.py CIFAR10 CW 9 10 1000 0.05 ```
