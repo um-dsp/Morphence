@@ -33,7 +33,7 @@ In order to generate 5 batches (pools of models) we execute the same command for
 
 (Skip to Morphence Evaluation if you already used step **A**)
 
-First create a folder call "experiments" (i.e ```/Morphence/experiments ```.
+First create a folder called "experiments" (i.e ```/Morphence/experiments ```.
 Next, run the following commands to download the student models:
 ```
 $ cd experiments
