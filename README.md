@@ -32,7 +32,7 @@ In order to generate 5 batches (pools of models) we execute the same command for
 **B: Use previously generated models**
 
 First create a folder call "experiments" (i.e ```/Morphence/experiments ```.
-Next, run the following command to download the student models:
+Next, run the following commands to download the student models:
 ```
 $ cd experiments
 ```
@@ -40,11 +40,14 @@ For MNIST: ```$ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc
 
 For CIFAR ```$ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR" -O CIFAR.zip && rm -rf /tmp/cookies.tx```
 
+Finally, unzip the models: ```unzip [data_name].zip -d [data_name]```
+
 ### Morphence Evaluation
 ```
 $ python test.py [data_name] [attack] [p] [n] [Q_max] [lamda] [batch_size=128] [epsilon=0.3] [batch_number=b1]
 ```
-It is important to use the same configuration adopted before for models generations.
+**Note**: It is important to use the same configuration adopted before for models generations. In case the previously generated models are adopted, you have to use the default configuration for test.py.
+
 ```[attack]``` can be: CW, FGS, SPSA or NoAttack.
 example:  ``` $ python test.py CIFAR10 CW 9 10 1000 0.05 ```
 
