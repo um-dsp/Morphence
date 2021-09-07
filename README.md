@@ -38,9 +38,13 @@ Next, run the following commands to download the student models:
 ```
 $ cd experiments
 ```
-For MNIST: ```$ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR" -O MNIST.zip && rm -rf /tmp/cookies.tx```
+For MNIST: 
 
-For CIFAR ```$ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR" -O CIFAR.zip && rm -rf /tmp/cookies.tx```
+```$ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR" -O MNIST.zip && rm -rf /tmp/cookies.tx```
+
+For CIFAR 
+
+```$ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1im49tMXgMHWapvA5UXmfhEQw7WnfRFzR" -O CIFAR.zip && rm -rf /tmp/cookies.tx```
 
 Finally, unzip the models: ```unzip [data_name].zip -d [data_name]```
 
