@@ -5,7 +5,7 @@ The following detailed instructions can be used to reproduce our results in Sect
 
 A GPU hardware environment is mandatory to run the code.
 ### Morphence: Demo on MNIST Dataset
-[![Morphence: MNIST demo](http://i3.ytimg.com/vi/8hkp_U0iY4o/maxresdefault.jpg)](https://youtu.be/8hkp_U0iY4o).
+[![Morphence: MNIST demo](http://i3.ytimg.com/vi/8hkp_U0iY4o/hqdefault.jpg)](https://youtu.be/8hkp_U0iY4o).
 
 ### Installation
 It is required to create a separate python3 environment. Then use the following commands:
