@@ -4,8 +4,8 @@ This repository contains the source code accompanying our ACSAC'21 paper [Morphe
 The following detailed instructions can be used to reproduce our results in Section 4.2 (Table 1). The user is also able to try parameters configuration other than what is adopted in the paper.
 
 A GPU hardware environment is mandatory to run the code.
-### Morphence: Demo on MNIST Dataset
-[![Morphence: MNIST demo](http://i3.ytimg.com/vi/8hkp_U0iY4o/hqdefault.jpg)](https://youtu.be/8hkp_U0iY4o).
+### Morphence Demo on MNIST Dataset
+[![Morphence: MNIST demo](http://i3.ytimg.com/vi/8hkp_U0iY4o/maxresdefault.jpg)](https://youtu.be/8hkp_U0iY4o)
 
 ### Installation
 It is required to create a separate python3 environment. Then use the following commands:
