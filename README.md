@@ -2,12 +2,12 @@
 This repository contains the source code accompanying our ACSAC'21 paper [Morphence: Moving Target Defense Against Adversarial Examples]( https://arxiv.org/abs/2108.13952). 
 
 The following detailed instructions can be used to reproduce our results in Section 4.2 (Table 1). The user is also able to try parameters configuration other than what is adopted in the paper. A GPU hardware environment is mandatory to run the code.
----
+***
 ### Morphence Demo on MNIST Dataset
 This demo on the MNIST dataset gives you a flavor of Morphence in action:
 
 [![Morphence: MNIST demo](http://i3.ytimg.com/vi/8hkp_U0iY4o/maxresdefault.jpg)](https://youtu.be/8hkp_U0iY4o)
----
+***
 
 ### Installation
 It is first required to create a separate python3 environment. Then execute the following commands from within the newly created python3 environment:
@@ -17,7 +17,7 @@ It is first required to create a separate python3 environment. Then execute the 
 ```$ cd Morphence ```
 
 ```$ pip install -r requirements.txt ```
----
+***
 ### Morphence Pool Generation
 You can generate the pool of models from scratch with **Option A** or you can download previously generated student models with **Option B**.
 
@@ -51,7 +51,7 @@ For CIFAR:
 ```$ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1WC91-yvPznjtZU503ehH7XG5wohzNtTO' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1WC91-yvPznjtZU503ehH7XG5wohzNtTO" -O CIFAR10.zip && rm -rf /tmp/cookies.tx```
 
 Finally, unzip the models: ```unzip [data_name].zip```
----
+***
 ### Morphence Evaluation
 
 The following command initiates a Morphence framework and performs [attack].
@@ -97,12 +97,12 @@ The used Copycat code is a modified version of the original code provided in : h
 
 * For MNIST:```$ python copycat/test.py [path-to-copycat-model] [path-to-target-model] MNIST```
 
- [path-to-copycat-model] can be either the path to the copycat model of the base model or the adversarially trained model.
+ ** [path-to-copycat-model] can be either the path to the copycat model of the base model or the adversarially trained model.
 
- [path-to-target-model] can be either the path to the base model or the adversarially trained model.
+ *** [path-to-target-model] can be either the path to the base model or the adversarially trained model.
 
 ##### Test model extraction of Morphence:
 * For CIFAR10:```$ python copycat/morph_test.py copycat_mtd_CNN_CIFAR10.pth CIFAR10```
 
 * For MNIST:```$ python copycat/morph_test.py copycat_mtd_CNN_MNIST.pth MNIST```
----
+***
