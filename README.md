@@ -50,6 +50,8 @@ For CIFAR:
 
 ```$ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1WC91-yvPznjtZU503ehH7XG5wohzNtTO' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1WC91-yvPznjtZU503ehH7XG5wohzNtTO" -O CIFAR10.zip && rm -rf /tmp/cookies.tx```
 
+For Windows users follow this direct download [link](https://drive.google.com/drive/folders/1Ohdc9BXVLq883ZCz8O5WeFzydnaUok8S?usp=sharing)
+
 Finally, unzip the models: ```unzip [data_name].zip```
 ***
 ### Morphence Evaluation
