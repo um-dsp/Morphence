@@ -97,9 +97,9 @@ The used Copycat code is a modified version of the original code provided in : h
 
 * For MNIST:```$ python copycat/test.py [path-to-copycat-model] [path-to-target-model] MNIST```
 
- -- [path-to-copycat-model] can be either the path to the copycat model of the base model or the adversarially trained model.
+  [path-to-copycat-model] can be either the path to the copycat model of the base model or the adversarially trained model.
 
- -- [path-to-target-model] can be either the path to the base model or the adversarially trained model.
+ [path-to-target-model] can be either the path to the base model or the adversarially trained model.
 
 ##### Test model extraction of Morphence:
 * For CIFAR10:```$ python copycat/morph_test.py copycat_mtd_CNN_CIFAR10.pth CIFAR10```
