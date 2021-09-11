@@ -108,3 +108,18 @@ The used Copycat code is a modified version of the original code provided in : h
 
 * For MNIST:```$ python copycat/morph_test.py copycat_mtd_CNN_MNIST.pth MNIST```
 ***
+### Citing Morphence
+If you use Morphence in a scientific publication, please cite it as follows:
+Abderrahmen Amich and Birhanu Eshete. Morphence: Moving Target Defense Against Adversarial Examples. In Proceedings of the 37th Annual Computer Sceurity Applications Conference, ACSAC'21.
+
+BibTex entry:
+```LaTex
+inproceedings{Morphence21,
+ author    = {Abderrahmen Amich and Birhanu Eshete},
+  title     = {{Morphence: Moving Target Defense Against Adversarial Examples}},
+booktitle = {Annual Computer Security Applications Conference, ASCAC 2021},
+ year      = {2021}
+  }
+}
+```
+***
