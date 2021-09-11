@@ -11,7 +11,7 @@ This demo on the MNIST dataset gives you a flavor of Morphence in action:
 
 
 
-### Step-1: Installation
+### Step-1: Downloading Morphence and Installing Dependencies 
 It is first required to create a separate python3 environment. Then execute the following commands from within the newly created python3 environment:
 
 ```$ git clone https://github.com/um-dsp/Morphence.git ```
