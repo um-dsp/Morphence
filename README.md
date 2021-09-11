@@ -64,7 +64,7 @@ The following command initiates a Morphence framework and performs [attack].
 ```
 $ python test.py [data_name] [attack] [p] [n] [Q_max] [lamda] [batch_size=128] [epsilon=0.3] [batch_number=b1]
 ```
-**Note**: In case **Option B** is used for model generation, you have to use the default configuration for the evaluation. Otherwise, you have to use the same configuration adopted in **Option A**.
+**Note**: If **Option A** is used for model generation, you have to use the default configuration for the evaluation. Otherwise, you have to use the same configuration adopted in **Option B**.
 
 ```[attack]``` can be: CW, FGS, SPSA or NoAttack.
 example:  ``` $ python test.py CIFAR10 CW 9 10 1000 0.05 ```
