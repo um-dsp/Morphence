@@ -108,7 +108,7 @@ The used Copycat code is a modified version of the original code provided in : h
 
 * For MNIST:```$ python copycat/morph_test.py copycat_mtd_CNN_MNIST.pth MNIST```
 ***
-### Citing Morphence
+### How to Cite Morphence
 If you use Morphence in a scientific publication, please cite it as follows:
 
 ```
