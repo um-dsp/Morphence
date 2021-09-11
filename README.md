@@ -9,7 +9,9 @@ This demo on the MNIST dataset gives you a flavor of Morphence in action:
 [![Morphence: MNIST demo](http://i3.ytimg.com/vi/8hkp_U0iY4o/maxresdefault.jpg)](https://youtu.be/8hkp_U0iY4o)
 ***
 
-### Installation
+
+
+### Step-1: Installation
 It is first required to create a separate python3 environment. Then execute the following commands from within the newly created python3 environment:
 
 ```$ git clone https://github.com/um-dsp/Morphence.git ```
@@ -18,24 +20,10 @@ It is first required to create a separate python3 environment. Then execute the 
 
 ```$ pip install -r requirements.txt ```
 ***
-### Morphence Pool Generation
-You can generate the pool of models from scratch with **Option A** or you can download previously generated student models with **Option B**.
+### Step-2: Morphence Pool Generation
+You can generate the pool of models either by downloading previously generated student models with **Option A** (faster) or generate pool of models from scratch with **Option B** (slower).
 
-**Option A: Generate from scratch**
-
-*Note*: Generating and retraining adversarially-trained models could take several hours. For a quicker experiment you can skip to **Option B**.
-```
-$ python generate_students.py [data_name] [batch_number] [p] [n] [lambda] [batch_size=128] [epsilon=0.3] [max_iter=50]
-```
-MNIST example:  ``` $ python generate_students.py MNIST b1 5 10 0.1 ```
-
-CIFAR10 example:  ``` $ python generate_students.py CIFAR10 b1 9 10 0.05 ```
-
-In order to generate 5 batches (pools of models) we execute the same command for b2, b3, b4 and b5.
-
-**Option B: Use previously generated models**
-
-(Skip to Morphence Evaluation if you already used **Option A**)
+**Option A: Use previously generated models (faster)**
 
 First create a folder called "experiments" (i.e ```/Morphence/experiments ```).
 Next, run the following commands to download the student models:
@@ -53,8 +41,23 @@ For CIFAR:
 For Windows users follow this direct download [link](https://drive.google.com/drive/folders/1Ohdc9BXVLq883ZCz8O5WeFzydnaUok8S?usp=sharing)
 
 Finally, unzip the models: ```unzip [data_name].zip```
+
+
+**Option B: Generate from scratch (may take a while)**
+
+*Note*: Generating and retraining adversarially-trained models could take several hours. 
+```
+$ python generate_students.py [data_name] [batch_number] [p] [n] [lambda] [batch_size=128] [epsilon=0.3] [max_iter=50]
+```
+MNIST example:  ``` $ python generate_students.py MNIST b1 5 10 0.1 ```
+
+CIFAR10 example:  ``` $ python generate_students.py CIFAR10 b1 9 10 0.05 ```
+
+In order to generate 5 batches (pools of models) we execute the same command for b2, b3, b4 and b5.
+
+
 ***
-### Morphence Evaluation
+### Step-3: Morphence Evaluation
 
 The following command initiates a Morphence framework and performs [attack].
 
