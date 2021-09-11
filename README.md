@@ -110,7 +110,8 @@ The used Copycat code is a modified version of the original code provided in : h
 ***
 ### Citing Morphence
 If you use Morphence in a scientific publication, please cite it as follows:
-Abderrahmen Amich and Birhanu Eshete. Morphence: Moving Target Defense Against Adversarial Examples. In Proceedings of the 37th Annual Computer Sceurity Applications Conference, ACSAC'21.
+
+`Abderrahmen Amich and Birhanu Eshete. Morphence: Moving Target Defense Against Adversarial Examples. In Proceedings of the 37th Annual Computer Sceurity Applications Conference, ACSAC'21.`
 
 BibTex entry:
 ```LaTex
