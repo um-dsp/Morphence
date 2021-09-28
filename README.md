@@ -123,9 +123,9 @@ BibTex entry:
 inproceedings{Morphence21,
  author    = {Abderrahmen Amich and Birhanu Eshete},
   title     = {{Morphence: Moving Target Defense Against Adversarial Examples}},
-booktitle = {Annual Computer Security Applications Conference (ACSAC), 2021},
+booktitle = {Annual Computer Security Applications Conference (ACSAC'21), December 6–10, 2021, Virtual Event, USA},
+publisher ={ACM},
  year      = {2021}
   }
-}
 ```
 ***
