@@ -741,7 +741,7 @@ def test_base(_):
     if FLAGS.attack=='NoAttack':
         print('Acc of master model ',accuracy(master_model,data,FLAGS.test_set,model_type='master'))
     else:
-        print('Acc of MTD framework under {} attack {}'.format(FLAGS.attack,test_under_attack(master_model,data,FLAGS.test_set,attack=FLAGS.attack,model_type='master',copycat=False)))
+        print('Acc of master model under {} attack {}'.format(FLAGS.attack,test_under_attack(master_model,data,FLAGS.test_set,attack=FLAGS.attack,model_type='master',copycat=False)))
     
 
 def test_adv(_):
@@ -780,9 +780,9 @@ def test_adv(_):
     
     
     if FLAGS.attack=='NoAttack':
-        print('Acc of master model ',accuracy(model,data,FLAGS.test_set,model_type='master_adv'))
+        print('Acc of adversarially trained model ',accuracy(model,data,FLAGS.test_set,model_type='master_adv'))
     else:
-        print('Acc of MTD framework under {} attack {}'.format(FLAGS.attack,test_under_attack(model,data,FLAGS.test_set,attack=FLAGS.attack,model_type='master_adv',copycat=False)))
+        print('Acc of adversarially trained model under {} attack {}'.format(FLAGS.attack,test_under_attack(model,data,FLAGS.test_set,attack=FLAGS.attack,model_type='master_adv',copycat=False)))
         
 def test(_):
     
