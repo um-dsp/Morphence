@@ -255,6 +255,7 @@ def robustness(model,data,size,batch_size=128,attack='CW',model_type='student',c
                     
             if model_type in ['student','master','mtd']:
                 if copycat==False:
+                    master_model=load_model(cwd,'')
                     x_adv, y_adv = perform_attack(master_model,data,size,attack=attack,model_type='mtd')
                 else:
                     x_adv, y_adv = perform_attack(target_model,data,size,attack=attack,model_type=model_type,copycat=True)
