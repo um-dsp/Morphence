@@ -795,7 +795,7 @@ def test(_):
     data = load_data()#train=False
     
     if FLAGS.attack == 'SPSA':
-        dir_path=os.path.join(cwd,attack+'_test')
+        dir_path=os.path.join(cwd,FLAGS.attack+'_test')
         if not os.path.exists(dir_path):
             mtd_inst = Morphence(6000*6000, 6000*6000,FLAGS.n,FLAGS.data,FLAGS.lamda,FLAGS.models_batch, FLAGS.class_nb)
             perform_attack(mtd_inst.predict2,data,FLAGS.test_set,attack='spsa',model_type='mtd',copycat=False)
