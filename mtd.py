@@ -113,7 +113,7 @@ def perform_attack(model,data,size,attack='spsa',model_type='mtd',copycat=False)
         x, y = x.to(device), y.to(device)
         print('# Performing {} attack on batch {}'.format(attack,i+1))
         if attack=='spsa':
-            x = spsa(model, x,eps=FLAGS.eps,nb_iter=100,norm = np.inf,sanity_checks=False)
+            x = spsa(model, x,eps=FLAGS.eps,nb_iter=1000,norm = np.inf,sanity_checks=False)
         if attack=='CW':
             x = carlini_wagner_l2(model, x, 10,y,targeted = False)
             
@@ -353,13 +353,14 @@ def retrain(net,data,device,epochs,batch_size=128,transform=None,adversarial=Fal
                     #if i%2==0:
                     # Replace clean example with adversarial example for adversarial training
                     master_model = load_model(cwd,'')
-                    
+                    '''
                     if i%100==0 and FLAGS.data=='MNIST':
                         #print('performing CW on batch {} for adversarial training'.format(i)) 
                         x = carlini_wagner_l2(master_model, x, 10,y,targeted = False)
-                    else: 
-                        #print('performing PGD on batch {} for adversarial training'.format(i))
-                        x = projected_gradient_descent(master_model, x, FLAGS.eps, 0.01, 40, np.inf)
+                    '''
+                    #else: 
+                    #print('performing PGD on batch {} for adversarial training'.format(i))
+                    x = projected_gradient_descent(master_model, x, FLAGS.eps, 0.01, 40, np.inf)
                             
                             
                         
