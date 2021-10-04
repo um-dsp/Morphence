@@ -113,7 +113,7 @@ def perform_attack(model,data,size,attack='spsa',model_type='mtd',copycat=False)
         x, y = x.to(device), y.to(device)
         print('# Performing {} attack on batch {}'.format(attack,i+1))
         if attack=='spsa':
-            x = spsa(model, x,eps=FLAGS.eps,nb_iter=10,norm = np.inf,sanity_checks=False)
+            x = spsa(model, x,eps=FLAGS.eps,nb_iter=100,norm = np.inf,sanity_checks=False)
         if attack=='CW':
             x = carlini_wagner_l2(model, x, 10,y,targeted = False)
             
