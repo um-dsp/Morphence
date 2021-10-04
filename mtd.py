@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-
 @author: Abderrahmen Amich
 @email:  aamich@umich.edu
 """
@@ -740,9 +739,9 @@ def test_base(_):
     master_model=load_model(cwd,'')
     
     if FLAGS.attack=='NoAttack':
-        print('Acc of master model ',accuracy(master_model,FLAGS.data,FLAGS.test_set,model_type='master'))
+        print('Acc of master model ',accuracy(master_model,data,FLAGS.test_set,model_type='master'))
     else:
-        print('Acc of MTD framework under {} attack {}'.format(FLAGS.attack,test_under_attack(master_model,FLAGS.data,FLAGS.test_set,attack=FLAGS.attack,model_type='master',copycat=False)))
+        print('Acc of MTD framework under {} attack {}'.format(FLAGS.attack,test_under_attack(master_model,data,FLAGS.test_set,attack=FLAGS.attack,model_type='master',copycat=False)))
     
 
 def test_adv(_):
