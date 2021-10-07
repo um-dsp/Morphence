@@ -75,7 +75,9 @@ example:  ``` $ python test.py CIFAR10 CW 9 10 1000 0.05 ```
 
 * Adversarially-trained model : ```$ python test_adv.py [data_name] [attack] [batch_size=128] [epsilon=0.3] ```
 
-### Copycat Models
+### [Extra] Model extraction evaluation
+
+Note: The following experiments do not take part in the paper.
 
 The used Copycat code is a modified version of the original code provided in : https://github.com/jeiks/Stealing_DL_Models/tree/master/Framework
 
