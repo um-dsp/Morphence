@@ -127,6 +127,7 @@ inproceedings{Morphence21,
   title     = {{Morphence: Moving Target Defense Against Adversarial Examples}},
 booktitle = {Annual Computer Security Applications Conference (ACSAC'21), December 6--10, 2021, Virtual Event, USA},
 publisher ={ACM},
+pages = {61--75},
  year      = {2021}
   }
 ```
