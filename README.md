@@ -42,7 +42,7 @@ For Windows users follow this direct download [link](https://drive.google.com/dr
 
 Finally, unzip the models: ```unzip [data_name].zip```
 
-To experiment Morphence2.0 on CIFAR10, downolad [Cifar10](https://drive.google.com/file/d/17WZP5ZWs0qwbnu0K96leas1R97b3RMbK/view?usp=sharing) SSD model.
+To experiment Morphence2.0 on CIFAR10, downolad [Cifar10](https://drive.google.com/file/d/17WZP5ZWs0qwbnu0K96leas1R97b3RMbK/view?usp=sharing) SSD model and place it in ```SSD/models```/.
 
 **Option B: Generate from scratch (may take a while)**
 
