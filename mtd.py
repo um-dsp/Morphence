@@ -12,15 +12,18 @@ import time
 import torch
 import torchvision
 from tqdm import tqdm
+from random import random
 from train_mnist import PyNet, ld_mnist
 from absl import app, flags
 from easydict import EasyDict
-from random import random
 from cleverhans.torch.attacks.projected_gradient_descent import (projected_gradient_descent,)
 from cleverhans.torch.attacks.carlini_wagner_l2 import carlini_wagner_l2
 from cleverhans.torch.attacks.spsa import spsa
 from cleverhans.torch.attacks.fast_gradient_method import fast_gradient_method
 from cifar import get_datasets, CNN
+from SSD.core import classify_ssd
+from SSD.core import create_load_model
+import SSD.data_import as SSD_data
 #from cifar_data import get_datasets, CNN
 
 FLAGS = flags.FLAGS
@@ -33,7 +36,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 torch.backends.cudnn.benchmark = True
 
 supported_datasets = ['MNIST','CIFAR10']
-supported_attacks = ['NoAttack','CW', 'FGS', 'SPSA']
+supported_attacks = ['NoAttack','CW', 'FGS', 'SPSA','PGD']
 
     
 def load_data(train=True,test=True):
@@ -113,12 +116,15 @@ def perform_attack(model,data,size,attack='spsa',model_type='mtd',copycat=False)
         x, y = x.to(device), y.to(device)
         print('# Performing {} attack on batch {}'.format(attack,i+1))
         if attack=='spsa':
-            x = spsa(model, x,eps=FLAGS.eps,nb_iter=1000,norm = np.inf,sanity_checks=False)
+            x = spsa(model, x,eps=FLAGS.eps,nb_iter=500,norm = np.inf,sanity_checks=False)
         if attack=='CW':
             x = carlini_wagner_l2(model, x, 10,y,targeted = False)
             
         if attack=='FGS':
             x = fast_gradient_method(model, x, eps=FLAGS.eps, norm = np.inf)
+            
+        if attack=='PGD':
+            x = projected_gradient_descent(model, x, FLAGS.eps, 0.01, 40, np.inf)
         
         if model_type=='mtd':
             if attack != 'spsa':
@@ -135,8 +141,8 @@ def perform_attack(model,data,size,attack='spsa',model_type='mtd',copycat=False)
             x_adv = torch.cat((x_adv,x))
             y_adv = torch.cat((y_adv,y))
         i+=1
-        print(x_adv.shape)
-        print(y_adv.shape)
+        #print(x_adv.shape)
+        #print(y_adv.shape)
         if x_adv.shape[0]>=size:
             break
         
@@ -248,7 +254,7 @@ def robustness(model,data,size,batch_size=128,attack='CW',model_type='student',c
                 target_model = target_model.cuda()
             target_model.eval()
             
-        if attack in ['CW', 'FGS']:
+        if attack in ['CW', 'FGS','PGD']:
             #if attack=='CW':
             #    size=1000
                     
@@ -527,24 +533,87 @@ def predict1(x):
     
     return y_probs
 
+def transferability(attack,data,size,batch_size=128):
+    '''compute accuracy'''
+    
+    transf=[] # list of average transferabilities for each student model
+    models=[]
+    for i in range(1,FLAGS.n+1):
+        models.append(load_model(os.path.join(cwd,FLAGS.data+"_models_"+''.join(str(FLAGS.lamda).split('.'))+'_'+str(FLAGS.p)),i))
+    
+    
+    
+    for i in range(len(models)):
+        if device == "cuda":
+            models[i] = models[i].cuda()
+        models[i].eval()
+        
+        print('performing {} attack on model {}'.format(attack,i+1))
+        x_adv, y_adv = perform_attack(models[i],data,size,attack=attack,model_type='student')
+        
+        transfi=[] # transferability of model i across all student models using using all adv data
+        for j in range(len(models)):
+            if j != i:
+                if device == "cuda":
+                    models[j] = models[j].cuda()
+                models[j].eval()
+                
+                tot=0 # total of adv samples on model i
+                s=0 # sum of transferable samples for model j
+                for b_i in range(0,x_adv.shape[0],batch_size):
+                    x, y = get_batch(x_adv,y_adv, b_i, batch_size)
+                    x, y = x.to(device), y.to(device)
+                    _, y_predi = models[i](x).max(1)
+                    resi = y_predi.eq(y)
+                    
+                    _, y_predj = models[j](x).max(1)
+                    resj = y_predj.eq(y)
+                    
+                    for ind in range(resi.shape[0]):
+                        if resi[ind] == False: # evasion on model i
+                            tot+=1
+                            if resj[ind] == False: # transferable to model j
+                                s+=1
+                print('Transferability of model {} to model {}: {}'.format(i+1,j+1,float(s)/tot))
+                transfi.append(float(s)/tot)
+        transf.append(np.mean(transfi))
+        print('Avergae Transferability of model {} across all models: {}'.format(i+1,np.mean(transfi)))
+        
+    print('Overall transferability of MTD framework using {} attack: {}'.format(attack,np.mean(transf)))
+    
+    return np.mean(transf)
+
+def test_under_attack(model,data,size,attack='CW',batch_size=128,model_type='mtd',copycat=False):
+    
+    return robustness(model,data,size,batch_size=batch_size,attack=attack,model_type=model_type,copycat=copycat)
+
+def generate_students(_):
+    
+    print("/*** Generating a batch of student models ***/\n")
+    data = load_data()
+    perturb_weights_and_retrain(cwd,data,FLAGS.lamda,FLAGS.n,FLAGS.p,batch_size=FLAGS.batch,new_train=True)
+
+
 
 class Morphence():
     
     '''Morphence prediction system'''
     
-    def __init__(self, test_size, Q_max,n,data,lamda,starting_batch, class_nb):
+    def __init__(self, test_size, Q_max,n,p,SSD_model,data,lamda,starting_batch, class_nb):
         
         self.test_size = test_size
         self.Q_max = Q_max
         self.n = n
+        self.p = p
         self.data = data
         self.lamda = lamda
         self.starting_batch = starting_batch
         self.class_nb = class_nb
+        self.SSD_model = SSD_model
         
         self.nb_queries = 0 # total number of queries previously performed on Morphence
         self.scheduling={} # number of selections for each model
-        for i in range(self.n+1): 
+        for i in range(self.n): 
             self.scheduling[i]=0
         
         # distribution of test set over different pool of models
@@ -554,6 +623,16 @@ class Morphence():
         
         if self.Q_max<=5000:
             print('The distribution of {} queries with respect to Q_max = {} is {}.'.format(self.test_size,self.Q_max,self.queries))
+            
+            
+        #load SSD data
+        self.SSD_train_loader, self.SSD_test_loader, _ = SSD_data.__dict__[FLAGS.data](
+               FLAGS.data_dir,
+                FLAGS.batch,
+                mode=FLAGS.data_mode,
+                normalize=FLAGS.normalize,
+                size=FLAGS.size,
+            )
         
     def predict2(self,x):
         ''' predict the labels of a set x using highest conf scheduling of MTD'''
@@ -670,66 +749,173 @@ class Morphence():
         
         
         return y_pred
-
-def transferability(attack,data,size,batch_size=128):
-    '''compute accuracy'''
-    
-    transf=[] # list of average transferabilities for each student model
-    models=[]
-    for i in range(1,FLAGS.n+1):
-        models.append(load_model(os.path.join(cwd,FLAGS.data+"_models_"+''.join(str(FLAGS.lamda).split('.'))+'_'+str(FLAGS.p)),i))
     
     
     
-    for i in range(len(models)):
-        if device == "cuda":
-            models[i] = models[i].cuda()
-        models[i].eval()
+    def predict_ssd(self,x):  
+        print('Received {} queries'.format(x.shape[0]))
         
-        print('performing {} attack on model {}'.format(attack,i+1))
-        x_adv, y_adv = perform_attack(models[i],data,size,attack=attack,model_type='student')
+        is_ood =  classify_ssd(x,self.SSD_model,self.SSD_train_loader, self.SSD_test_loader)
         
-        transfi=[] # transferability of model i across all student models using using all adv data
-        for j in range(len(models)):
-            if j != i:
-                if device == "cuda":
-                    models[j] = models[j].cuda()
-                models[j].eval()
+        
+        # input transformations
+        #trans_shift = 0.1+(random()*(0.25-0.1)) #scaled value = min + (value * (max - min))
+        #rot_deg = 10+(random()*(20-10))
+        #transform=torchvision.transforms.RandomAffine(degrees=0, translate=(trans_shift,trans_shift))
+        #x=transform(x)
+        
+        # Gaussian Noise 
+        #x = x + np.sqrt(0.1)*(0.1**0.5)*torch.randn(x.shape).to(device)
+        
+        y_probs=[] # prediction probabilities  of all models
+        
+        for qi in range(len(self.queries)-1):
+            
+            if self.nb_queries >= self.queries[qi] and self.nb_queries < self.queries[qi+1]:
+                if self.nb_queries + x.shape[0] <= self.queries[qi+1]:
+                    models=[]
+                    for i in range(1,self.n+1):
+                        try:
+                            #models.append(load_model(os.path.join(cwd,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(FLAGS.p)),i))
+                            models.append(load_model(os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi)),i))
+                        except FileNotFoundError:
+                            raise('model {} is not found'.format(i))
+                            
+                    print('### Responding to queries from {} to {} using models pool {}'.format(self.nb_queries+1,self.nb_queries + x.shape[0],self.starting_batch[0]+str(int(self.starting_batch[1])+qi)))
+                    for model in models:
+                        if device == "cuda":
+                            model = model.cuda()
+                        model.eval()
+                        y_probs.append(model(x))
                 
-                tot=0 # total of adv samples on model i
-                s=0 # sum of transferable samples for model j
-                for b_i in range(0,x_adv.shape[0],batch_size):
-                    x, y = get_batch(x_adv,y_adv, b_i, batch_size)
-                    x, y = x.to(device), y.to(device)
-                    _, y_predi = models[i](x).max(1)
-                    resi = y_predi.eq(y)
-                    
-                    _, y_predj = models[j](x).max(1)
-                    resj = y_predj.eq(y)
-                    
-                    for ind in range(resi.shape[0]):
-                        if resi[ind] == False: # evasion on model i
-                            tot+=1
-                            if resj[ind] == False: # transferable to model j
-                                s+=1
-                print('Transferability of model {} to model {}: {}'.format(i+1,j+1,float(s)/tot))
-                transfi.append(float(s)/tot)
-        transf.append(np.mean(transfi))
-        print('Avergae Transferability of model {} across all models: {}'.format(i+1,np.mean(transfi)))
+                elif self.nb_queries + x.shape[0] > self.queries[qi+1]:
+                    models1=[]
+                    models2=[]
+                    x1 = x[:self.queries[qi+1]-self.nb_queries]
+                    print('### Responding to queries from {} to {} using models pool {}'.format(self.nb_queries+1,self.queries[qi+1],self.starting_batch[0]+str(int(self.starting_batch[1])+qi)))
+                    if self.queries[qi+1] < self.test_size:
+                        x2 = x[self.queries[qi+1]-self.nb_queries:]
+                        print('And responding to queries from {} to {} using models pool {}'.format(self.queries[qi+1]+1,self.nb_queries + x.shape[0],self.starting_batch[0]+str(int(self.starting_batch[1])+qi+1)))
+                    for i in range(1,self.n+1):
+                        try:
+                            models1.append(load_model(os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi)),i))
+                        except FileNotFoundError:
+                            raise('model {} is not found'.format(i))
+                            
+                        if self.queries[qi+1] < self.test_size:
+                            try:
+                                models2.append(load_model(os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi+1)),i))
+                            except FileNotFoundError:
+                                raise('model {} is not found'.format(i))
+                                
+                    if self.queries[qi+1] < self.test_size:
+                        for model1,model2 in zip(models1,models2):
+                            if device == "cuda":
+                                model1 = model1.cuda()
+                                model2 = model2.cuda()
+                            model1.eval()
+                            model2.eval()
+                            
+                            y_probs.append(torch.cat((model1(x1),model2(x2)),dim=0))
+                    else:
+                        
+                        for model1 in models1:
+                            if device == "cuda":
+                                model1 = model1.cuda()
+                                
+                            model1.eval()
+                            y_probs.append(model1(x))
+                            
         
-    print('Overall transferability of MTD framework using {} attack: {}'.format(attack,np.mean(transf)))
-    
-    return np.mean(transf)
+            
+        
+        # update number of queries                       
+        self.nb_queries += x.shape[0]
 
-def test_under_attack(model,data,size,attack='CW',batch_size=128,model_type='mtd',copycat=False):
-    
-    return robustness(model,data,size,batch_size=batch_size,attack=attack,model_type=model_type,copycat=copycat)
+        '''
+        models = []
+        for i in range(1,self.n+1):
+            # , => \\
+            try:
+                models.append(load_model(os.path.join(cwd,"experiments",self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(FLAGS.n)+"_"+str(FLAGS.models_batch)),i))
+            except FileNotFoundError:
+                raise('model {} is not found'.format(i))
+        '''
+        #print(len(models))
+        #print(len(y_probs))
+        
+        
+        if(is_ood):
+            print('current batch is OOD')
+            # Using models n-p -> n (defended)
+            models = models[self.n-self.p:self.n]
+            y_probs = y_probs[self.n-self.p:self.n]
+            print('Using {} adversarially-trained models'.format(self.p))
+        else : 
+            print('current batch is In-distribution')
+            # using models 0 -> n-p (undefended)
+            models = models[0:self.n-self.p]
+            y_probs = y_probs[0:self.n - self.p]
+            print('Using {} undefended models'.format(self.n-self.p))
+        
+        '''
+        print('testing all models accuracy')
+        data = load_data()
+        for model in  models:
+            print('acc', accuracy(model,data,5000,model_type='student'))
+        '''
+        y_probs=[]
+        for model in models:
+            if device == "cuda":
+                model = model.cuda()
+            model.eval()
+            #print('predicting')
+            #print(len(model(x)))
+            y_probs.append(model(x))
+        
+        #y_ind init torch tensor
+        #print("yprobs : ",y_probs)
+        for ind in range(x.shape[0]):
+            for i in range(len(y_probs)):
+                #print('[i]',i)
+                #List of highest confidence prediction
+                if i==0:
+                    y_ind = torch.reshape(y_probs[i][ind], (1, self.class_nb))
+                else:
+                    y_ind = torch.cat((y_ind,torch.reshape(y_probs[i][ind], (1, self.class_nb))),dim=0)
+                
+            #print('predictions of sample {} are {}'.format(ind,y_ind))
+            #print('highest confidence vector of sample {} are {}'.format(ind, y_ind.max(0)[0]))
+            
+            
+            #print('top k highest confidence vector of sample {} are {}'.format(ind, torch.topk(y_ind,5,dim=0)[0]))
+            
+            #print(y_ind.max(0))
+            #print(y_ind.max(0)[0].argmax().item()#)
+            #Select highest confidence model for all samples
+            selected_ind = y_ind.max(0)[1][y_ind.max(0)[0].argmax().item()].item()
+            
+            #if FLAGS.data=='CIFAR10' and selected_ind in [0,1,2]:
+            #    selected_ind = torch.topk(y_ind,2,dim=0)[1][1][torch.topk(y_ind,2,dim=0)[0][1].argmax().item()]
+            #print('selected model for sample {} is model {}'.format(ind, selected_ind))
+            
+            # keep track of selected models
+            if(is_ood):
+                self.scheduling[selected_ind+self.n-self.p]+=1
+            else:
+                self.scheduling[selected_ind]+=1
+            
+            if ind == 0:
+                y_pred = torch.reshape(y_ind.max(0)[0], (1, self.class_nb))
+            else:
+                y_pred = torch.cat((y_pred,torch.reshape(y_ind.max(0)[0], (1, self.class_nb))))
+                
+            
+        
+        return y_pred
 
-def generate_students(_):
-    
-    print("/*** Generating a batch of student models ***/\n")
-    data = load_data()
-    perturb_weights_and_retrain(cwd,data,FLAGS.lamda,FLAGS.n,FLAGS.p,batch_size=FLAGS.batch,new_train=True)
+
+
 
 def test_base(_):
     
@@ -788,23 +974,42 @@ def test_adv(_):
 def test(_):
     
     if FLAGS.Q_max>5000:
-        raise('Q_max is higher than the test set size. use a lower value')
+        raise ValueError('Q_max is higher than the test set size. use a lower value')
         
     if FLAGS.attack not in supported_attacks:
-        raise('attack is not supported try CW, FGS or SPSA')
+        raise  ValueError('attack is not supported try CW, FGS, PGD or SPSA')
     print('Loading data ...')
     data = load_data()#train=False
+    
+    #Load pre trained SSD model
+    SSD_model = create_load_model(FLAGS)
+    
+    
     
     if FLAGS.attack == 'SPSA':
         dir_path=os.path.join(cwd,FLAGS.attack+'_test')
         if not os.path.exists(dir_path):
-            mtd_inst = Morphence(6000*6000, 6000*6000,FLAGS.n,FLAGS.data,FLAGS.lamda,FLAGS.models_batch, FLAGS.class_nb)
-            perform_attack(mtd_inst.predict2,data,FLAGS.test_set,attack='spsa',model_type='mtd',copycat=False)
+            mtd_inst = Morphence(6000*6000, 6000*6000,FLAGS.n,FLAGS.p,SSD_model,FLAGS.data,FLAGS.lamda,FLAGS.models_batch, FLAGS.class_nb)
+            if FLAGS.version == '2':
+                perform_attack(mtd_inst.predict_ssd,data,FLAGS.test_set,attack='spsa',model_type='mtd',copycat=False)
+            elif FLAGS.version == '1':
+                perform_attack(mtd_inst.predict2,data,FLAGS.test_set,attack='spsa',model_type='mtd',copycat=False)
          
     print('Initializing Morphence ...')
-    mtd_inst = Morphence(FLAGS.test_set, FLAGS.Q_max,FLAGS.n,FLAGS.data,FLAGS.lamda,FLAGS.models_batch, FLAGS.class_nb)
+    mtd_inst = Morphence(FLAGS.test_set, FLAGS.Q_max,FLAGS.n,FLAGS.p,SSD_model,FLAGS.data,FLAGS.lamda,FLAGS.models_batch, FLAGS.class_nb)
     
-    if FLAGS.attack=='NoAttack':
-        print('Acc of MTD framework before attack',accuracy(mtd_inst.predict2,data,FLAGS.test_set,model_type='mtd'))
-    else:
-        print('Acc of MTD framework under {} attack {}'.format(FLAGS.attack, test_under_attack(mtd_inst.predict2,data,FLAGS.test_set,attack=FLAGS.attack,batch_size=FLAGS.batch,model_type='mtd',copycat=False)))  
+    
+    if FLAGS.version not in ['1','2']:
+        raise  ValueError('version {} is not supported, try versions "1" or "2"'.format(FLAGS.version))
+    if FLAGS.version == '2':
+        if FLAGS.attack=='NoAttack': 
+            print('Acc of MTD framework before attack',accuracy(mtd_inst.predict_ssd,data,FLAGS.test_set,model_type='mtd'))
+        else:
+            print('Acc of MTD framework under {} attack {}'.format(FLAGS.attack, test_under_attack(mtd_inst.predict_ssd,data,FLAGS.test_set,attack=FLAGS.attack,batch_size=FLAGS.batch,model_type='mtd',copycat=False)))  
+    elif FLAGS.version == '1':
+        if FLAGS.attack=='NoAttack': 
+            print('Acc of MTD framework before attack',accuracy(mtd_inst.predict2,data,FLAGS.test_set,model_type='mtd'))
+        else:
+            print('Acc of MTD framework under {} attack {}'.format(FLAGS.attack, test_under_attack(mtd_inst.predict2,data,FLAGS.test_set,attack=FLAGS.attack,batch_size=FLAGS.batch,model_type='mtd',copycat=False)))  
+
+    print(mtd_inst.scheduling)
