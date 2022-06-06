@@ -74,7 +74,7 @@ $ python test.py [data_name] [attack] [p] [n]  [Q_max] [lamda] [version] [batch_
 
 example:
 
-MNIST: ```python test.py MNIST FGS  5 10 1000 0.1 2 200 0.3 SimCLR resnet18 SSD/models/MNIST.pth.tar  ./data/ base false  b1 28```
+MNIST: ```$ python test.py MNIST FGS  5 10 1000 0.1 2 200 0.3 SimCLR resnet18 SSD/models/MNIST.pth.tar  ./data/ base false  b1 28```
 
 CIFAR10: ``` $ python test.py CIFAR10 FGS  9 10 1000 0.05 2 200 0.3 SimCLR resnet50 SSD/models/CIFAR10.pth  ./data/ base false  b1 32 ```
 
