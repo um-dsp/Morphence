@@ -71,7 +71,12 @@ $ python test.py [data_name] [attack] [p] [n]  [Q_max] [lamda] [version] [batch_
 **Note**: If **Option A** is used for model generation, you have to use the default configuration for the evaluation. Otherwise, you have to use the same configuration adopted in **Option B**.
 
 ```[attack]``` can be: CW, FGS, SPSA or NoAttack.
-example: ``` $ python test.py CIFAR10 FGS  9 10 1000 0.05 2 200 0.3 SimCLR resnet50 SSD/models/CIFAR10.pth  ./data/ base false  b1 32 ```
+
+example:
+
+MNIST: ```python test.py MNIST FGS  5 10 1000 0.1 2 200 0.3 SimCLR resnet18 SSD/models/MNIST.pth.tar  ./data/ base false  b1 28```
+
+CIFAR10: ``` $ python test.py CIFAR10 FGS  9 10 1000 0.05 2 200 0.3 SimCLR resnet50 SSD/models/CIFAR10.pth  ./data/ base false  b1 32 ```
 
 ### Fixed Baseline models Evaluation
 
