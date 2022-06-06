@@ -752,7 +752,10 @@ class Morphence():
     
     
     
-    def predict_ssd(self,x):  
+    def predict_ssd(self,x):
+        
+        if FLAGS.batch%10 != 0:
+            raise ValueError('Batch size has to be a multiple of 10. try 50,100 or 200')
         print('Received {} queries'.format(x.shape[0]))
         
         is_ood =  classify_ssd(x,self.SSD_model,self.SSD_train_loader, self.SSD_test_loader)

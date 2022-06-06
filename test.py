@@ -18,7 +18,7 @@ if __name__ == "__main__":
     #### User configuration ####
                                                                                                                                                                                             
     if len(argv) < 8 or len(argv) > 18:
-        print('Use: {} [data_name] [attack] [p] [n]  [Q_max] [lamda] [version] [batch_size=128] [epsilon=0.3] [ssd_training_mode=SIMCLR] [arch =resnet50] [ckpt=./models_ssd]  [data_dir = data directory path] [data-mode = for SSD {base,ssl,org}] [normalize = normalise data for SSD] [batch_number=b1]  [size = ssd_getDatasets resize param ]'.format(argv[0]), file=stderr)
+        print('Use: {} [data_name] [attack] [p] [n]  [Q_max] [lamda] [version] [batch_size=100] [epsilon=0.3] [ssd_training_mode=SIMCLR] [arch =resnet50] [ckpt=./models_ssd]  [data_dir = data directory path] [data-mode = for SSD {base,ssl,org}] [normalize = normalise data for SSD] [batch_number=b1]  [size = ssd_getDatasets resize param ]'.format(argv[0]), file=stderr)
         exit(1)
     elif len(argv) >= 8:
         
