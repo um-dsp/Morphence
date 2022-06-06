@@ -1,5 +1,5 @@
 # Morphence: Moving Target Defense Against Adversarial Examples
-This repository contains the source code accompanying our ACSAC'21 paper [Morphence: Moving Target Defense Against Adversarial Examples]( https://arxiv.org/abs/2108.13952). 
+This repository contains the source code accompanying our ACSAC'21 paper [Morphence: Moving Target Defense Against Adversarial Examples]( https://arxiv.org/abs/2108.13952) and its extension to Morphence2.0.
 
 The following detailed instructions can be used to reproduce our results in Section 4.2 (Table 1). The user is also able to try parameters configuration other than what is adopted in the paper. A GPU hardware environment is mandatory to run the code.
 ***
@@ -42,6 +42,7 @@ For Windows users follow this direct download [link](https://drive.google.com/dr
 
 Finally, unzip the models: ```unzip [data_name].zip```
 
+To experiment Morphence2.0 on CIFAR10, downolad [Cifar10](https://drive.google.com/file/d/17WZP5ZWs0qwbnu0K96leas1R97b3RMbK/view?usp=sharing) SSD model and place it in ```SSD/models```/.
 
 **Option B: Generate from scratch (may take a while)**
 
