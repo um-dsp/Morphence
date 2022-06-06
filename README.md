@@ -62,13 +62,16 @@ In order to generate 5 batches (pools of models) we execute the same command for
 
 The following command initiates a Morphence framework and performs [attack].
 
+You can try both Morphence versions by configuring the version parameter to 1 or 2
+
 ```
-$ python test.py [data_name] [attack] [p] [n] [Q_max] [lamda] [batch_size=128] [epsilon=0.3] [batch_number=b1]
+$ python test.py [data_name] [attack] [p] [n]  [Q_max] [lamda] [version] [batch_size=100] [epsilon=0.3] [ssd_training_mode=SIMCLR] [arch =resnet50] [ckpt=./models_ssd]  [data_dir = data directory path] [data-mode = for SSD {base,ssl,org}] [normalize = normalise data for SSD] [batch_number=b1]  [size = ssd_getDatasets resize param ]
+
 ```
 **Note**: If **Option A** is used for model generation, you have to use the default configuration for the evaluation. Otherwise, you have to use the same configuration adopted in **Option B**.
 
 ```[attack]``` can be: CW, FGS, SPSA or NoAttack.
-example:  ``` $ python test.py CIFAR10 CW 9 10 1000 0.05 ```
+example: ``` $ python test.py CIFAR10 FGS  9 10 1000 0.05 2 200 0.3 SimCLR resnet50 SSD/models/CIFAR10.pth  ./data/ base false  b1 32 ```
 
 ### Fixed Baseline models Evaluation
 
