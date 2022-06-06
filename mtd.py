@@ -782,7 +782,7 @@ class Morphence():
                             #models.append(load_model(os.path.join(cwd,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(FLAGS.p)),i))
                             models.append(load_model(os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi)),i))
                         except FileNotFoundError:
-                            raise('model {} is not found'.format(i))
+                            raise ValueError('model {} is not found'.format(i))
                             
                     print('### Responding to queries from {} to {} using models pool {}'.format(self.nb_queries+1,self.nb_queries + x.shape[0],self.starting_batch[0]+str(int(self.starting_batch[1])+qi)))
                     for model in models:
@@ -803,13 +803,13 @@ class Morphence():
                         try:
                             models1.append(load_model(os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi)),i))
                         except FileNotFoundError:
-                            raise('model {} is not found'.format(i))
+                            raise ValueError('model {} is not found'.format(i))
                             
                         if self.queries[qi+1] < self.test_size:
                             try:
                                 models2.append(load_model(os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi+1)),i))
                             except FileNotFoundError:
-                                raise('model {} is not found'.format(i))
+                                raise ValueError('model {} is not found'.format(i))
                                 
                     if self.queries[qi+1] < self.test_size:
                         for model1,model2 in zip(models1,models2):
