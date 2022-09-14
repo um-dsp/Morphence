@@ -1,5 +1,5 @@
 # Morphence: Moving Target Defense Against Adversarial Examples
-This repository contains the source code accompanying our ACSAC'21 paper [Morphence: Moving Target Defense Against Adversarial Examples]( https://arxiv.org/abs/2108.13952) and its extension to [Morphence-2.0](https://arxiv.org/abs/2206.07321).
+This repository contains the source code accompanying our ACSAC'21 paper [Morphence: Moving Target Defense Against Adversarial Examples]( https://arxiv.org/abs/2108.13952) and its extension to [Morphence-2.0: Evasion-Resilient Moving Target Defense Powered by Out-of-Distribution Detection](https://arxiv.org/abs/2206.07321).
 
 The following detailed instructions can be used to reproduce our results in Section 4.2 (Table 1). The user is also able to try parameters configuration other than what is adopted in the paper. A GPU hardware environment is mandatory to run the code.
 ***
