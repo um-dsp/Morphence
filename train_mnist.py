@@ -21,6 +21,8 @@ from cleverhans.torch.attacks.projected_gradient_descent import (
     projected_gradient_descent,
 )
 
+import time
+
 import os
 FLAGS = flags.FLAGS
 
@@ -85,26 +87,45 @@ def ld_mnist(batch_size=128, transform=None,shuffle=True):
     return EasyDict(train=train_loader, test=test_loader)
 
 
+def mps_enabled() -> bool:
+    """
+    - checks if the current system has support for the Metal programming framework, which allows GPU acceleration in ML applications, such as DNN
+    """
+    platform = os.uname().sysname.strip().lower() # check if current platform is macOS specific (i.e., Darwin)
+    if "darwin" not in platform or not torch.backends.mps.is_available() or not torch.backends.mps.is_built():
+        return False
+    return True
+
+
 def main(_):
+    start = time.time()
     # Load training and test data
     data = ld_mnist()
 
     # Instantiate model, loss, and optimizer for training
     net = PyNet(in_channels=1)
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    if device == "cuda":
-        net = net.cuda()
+    if mps_enabled():
+        print('Detected Darwin platform with MPS device...')
+        DEVICE = "mps"
+    elif torch.cuda.is_available():
+        DEVICE = "cuda"
+    else:
+        DEVICE = "cpu"
+
     loss_fn = torch.nn.CrossEntropyLoss(reduction="mean")
     
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+
+    # move the model onto device
+    net.to(device=DEVICE)
 
     # Train model
     net.train()
     for epoch in range(1, FLAGS.nb_epochs + 1):
         train_loss = 0.0
         for x, y in data.train:
-            x, y = x.to(device), y.to(device)
+            x, y = x.to(DEVICE), y.to(DEVICE)
             '''
             if FLAGS.adv_train:
                 # Replace clean example with adversarial example for adversarial training
@@ -125,7 +146,7 @@ def main(_):
     net.eval()
     report = EasyDict(nb_test=0, correct=0, correct_fgm=0, correct_pgd=0)
     for x, y in data.test:
-        x, y = x.to(device), y.to(device)
+        x, y = x.to(DEVICE), y.to(DEVICE)
         
         _, y_pred = net(x).max(1)  # model prediction on clean examples
         report.nb_test += y.size(0)
@@ -137,9 +158,9 @@ def main(_):
     # save model
     filename = os.path.join(cwd,"CNN_MNIST.pth")
     torch.save(net.state_dict(),filename)
-    
+
+    print(f'\nTraining MNIST on torch.device({DEVICE}) took: {round(time.time()-start,2)} s')
 
 if __name__ == "__main__":
     flags.DEFINE_integer("nb_epochs", 8, "Number of epochs.")
-
     app.run(main)

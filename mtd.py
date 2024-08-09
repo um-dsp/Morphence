@@ -26,14 +26,21 @@ from SSD.core import create_load_model
 import SSD.data_import as SSD_data
 #from cifar_data import get_datasets, CNN
 
+from train_mnist import mps_enabled # method that uses metal framework (Apple ARM devices)
+
 FLAGS = flags.FLAGS
 
-# Get current working directory
 cwd = os.getcwd()
 
-# Create execution device
-device = "cuda" if torch.cuda.is_available() else "cpu"
-torch.backends.cudnn.benchmark = True
+# Create execution device. the global device will be denoted by all uppercase letters
+# a device that is locally defined inside a method will be lowercase
+if torch.cuda.is_available():
+    DEVICE = "cuda"
+    torch.backends.cudnn.benchmark = True
+elif mps_enabled():
+    DEVICE = "mps"
+else:
+    DEVICE = "cpu"
 
 supported_datasets = ['MNIST','CIFAR10']
 supported_attacks = ['NoAttack','CW', 'FGS', 'SPSA','PGD']
@@ -52,9 +59,11 @@ def load_data(train=True,test=True):
     return data
 
 
-def load_model(dir_path,ind,adv_train=False,model_type='mtd',copycat=False):
-    '''load model'''
-    
+def load_model(device,dir_path,ind,adv_train=False,model_type='mtd',copycat=False):
+    """
+    - load the model
+    - param `device`: `str` is required
+    """
     
     if FLAGS.data not in supported_datasets:
         raise ValueError('Dataset {} is not supported'.format(FLAGS.data))
@@ -64,7 +73,7 @@ def load_model(dir_path,ind,adv_train=False,model_type='mtd',copycat=False):
     elif FLAGS.data == 'CIFAR10':
         model = CNN()
     
-    model.cuda()
+    model.to(device) # load the model onto custom device
     if adv_train==False:
         if copycat==False:
             model.load_state_dict(torch.load(os.path.join(cwd,dir_path,"CNN_"+FLAGS.data + str(ind) + ".pth")))
@@ -84,14 +93,13 @@ def accuracy(model,data, size, model_type='torch'):
     '''compute accuracy'''
     
     if model_type=='torch':
-        if device == "cuda":
-            model = model.cuda()
+        model.to(DEVICE)
         model.eval()
         
     shape=0
     report = EasyDict(nb_test=0, correct=0)
     for x, y in data.test:
-        x, y = x.to(device), y.to(device)
+        x, y = x.to(DEVICE), y.to(DEVICE)
         _, y_pred = model(x).max(1)
         report.nb_test += y.size(0)
         report.correct += y_pred.eq(y).sum().item()
@@ -113,7 +121,7 @@ def perform_attack(model,data,size,attack='spsa',model_type='mtd',copycat=False)
     nb_test=0
     for x, y in data.test:
         #print(x.shape)
-        x, y = x.to(device), y.to(device)
+        x, y = x.to(DEVICE), y.to(DEVICE)
         print('# Performing {} attack on batch {}'.format(attack,i+1))
         if attack=='spsa':
             x = spsa(model, x,eps=FLAGS.eps,nb_iter=500,norm = np.inf,sanity_checks=False)
@@ -128,6 +136,7 @@ def perform_attack(model,data,size,attack='spsa',model_type='mtd',copycat=False)
         
         if model_type=='mtd':
             if attack != 'spsa':
+                model.to(DEVICE)
                 model.eval()
         _, y_pred = model(x).max(1)
         nb_test += x.shape[0]
@@ -234,24 +243,20 @@ def robustness(model,data,size,batch_size=128,attack='CW',model_type='student',c
     print(path)
     if not os.path.exists(path):
         if model_type in ['master_adv','master'] and copycat==False:
-            if device == "cuda":
-                model = model.cuda()
+            model.to(DEVICE)
             model.eval()
         elif model_type in ['student','mtd']:
             if copycat==False:
-                master_model = load_model(cwd,'')
-                if device == "cuda":
-                    master_model = master_model.cuda()
+                master_model = load_model(DEVICE, cwd,'')
+                master_model.to(DEVICE)
                 master_model.eval()
             else:
-                target_model=load_model(os.path.join(cwd,'Copycat','Framework'),'',model_type=model_type,copycat=True)
-                if device == "cuda":
-                    target_model = target_model.cuda()
+                target_model=load_model(DEVICE, os.path.join(cwd,'Copycat','Framework'),'',model_type=model_type,copycat=True)
+                target_model.to(DEVICE)
                 target_model.eval()
         elif model_type in ['master_adv','master'] and copycat==True:
-            target_model=load_model(os.path.join(cwd,'Copycat','Framework'),'',model_type=model_type,copycat=True)
-            if device == "cuda":
-                target_model = target_model.cuda()
+            target_model=load_model(DEVICE, os.path.join(cwd,'Copycat','Framework'),'',model_type=model_type,copycat=True)
+            target_model.to(DEVICE)
             target_model.eval()
             
         if attack in ['CW', 'FGS','PGD']:
@@ -260,22 +265,19 @@ def robustness(model,data,size,batch_size=128,attack='CW',model_type='student',c
                     
             if model_type in ['student','master','mtd']:
                 if copycat==False:
-                    master_model=load_model(cwd,'')
+                    master_model=load_model(DEVICE, cwd,'')
                     x_adv, y_adv = perform_attack(master_model,data,size,attack=attack,model_type='mtd')
                 else:
                     x_adv, y_adv = perform_attack(target_model,data,size,attack=attack,model_type=model_type,copycat=True)
-            
-                
+    
             if model_type in ['master_adv']:
                 if copycat==False:
                     x_adv, y_adv = perform_attack(model,data,size,attack=attack,model_type=model_type)
                 else:
-                    x_adv, y_adv = perform_attack(target_model,data,size,attack=attack,model_type=model_type,copycat=copycat)
-            
+                    x_adv, y_adv = perform_attack(target_model,data,size,attack=attack,model_type=model_type,copycat=copycat)            
                     
         else:
             x_adv, y_adv = perform_attack(model,data,size,attack=attack,model_type=model_type)
-            
     
     else:
         #print('Loading ', path)
@@ -284,15 +286,14 @@ def robustness(model,data,size,batch_size=128,attack='CW',model_type='student',c
         f.close()
     
     if model_type in ['student', 'master', 'master_adv']:
-        if device == "cuda":
-            model = model.cuda()
+        model.to(DEVICE)
         model.eval()
-        
+
     report = EasyDict(nb_test=0, correct=0)
     shape=0
     for i in range(0,x_adv.shape[0],batch_size):
         x, y = get_batch(x_adv,y_adv, i, batch_size)
-        x, y = x.to(device), y.to(device)
+        x, y = x.to(DEVICE), y.to(DEVICE)
         _, y_pred = model(x).max(1)
         report.nb_test += y.size(0)
         report.correct += y_pred.eq(y).sum().item() 
@@ -300,8 +301,8 @@ def robustness(model,data,size,batch_size=128,attack='CW',model_type='student',c
         if model_type=='mtd':
             print('Current robustness against {} is :{} %'.format(attack,report.correct / report.nb_test * 100.0))
         del x, y
-        torch.cuda.empty_cache()
-        
+        if DEVICE =="cuda":
+            torch.cuda.empty_cache()
         if shape >= size:
             break
         
@@ -329,10 +330,13 @@ def get_batch(x_all,y_all, start, batch_size=128):
     return x, y
             
 def retrain(net,data,device,epochs,batch_size=128,transform=None,adversarial=False,save=False):
-    '''retrain network either on new clean data or adversarial data'''
+    """
+    - retrain network either on new clean data or adversarial data
+    - param `device`: `str` is required
+    """
     
-    if device == "cuda":
-        net = net.cuda()
+    net.to(device) # load the model onto device
+
     loss_fn = torch.nn.CrossEntropyLoss(reduction="mean")
     if FLAGS.data == 'MNIST':
         optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
@@ -352,13 +356,12 @@ def retrain(net,data,device,epochs,batch_size=128,transform=None,adversarial=Fal
                 #if i%2==0:
                 if transform != None:
                     x=transform(x)
-                        
-                       
+  
                 if adversarial==True: 
                     
                     #if i%2==0:
                     # Replace clean example with adversarial example for adversarial training
-                    master_model = load_model(cwd,'')
+                    master_model = load_model(device, cwd,'') # the `device` parameter is used from the method instead of the global one
                     '''
                     if i%100==0 and FLAGS.data=='MNIST':
                         #print('performing CW on batch {} for adversarial training'.format(i)) 
@@ -367,10 +370,7 @@ def retrain(net,data,device,epochs,batch_size=128,transform=None,adversarial=Fal
                     #else: 
                     #print('performing PGD on batch {} for adversarial training'.format(i))
                     x = projected_gradient_descent(master_model, x, FLAGS.eps, 0.01, 40, np.inf)
-                            
-                            
-                        
-                
+      
                 optimizer.zero_grad()
                 loss = loss_fn(net(x), y)
                 loss.backward()
@@ -382,10 +382,7 @@ def retrain(net,data,device,epochs,batch_size=128,transform=None,adversarial=Fal
         print("--- A  epoch takes %s seconds ---" % (time.time() - start_time))
         print("epoch: {}/{}, train loss: {:.3f}".format(
                 epoch, epochs, train_loss))    
-            
-        
-            
-        
+
     acc = accuracy(net,data,FLAGS.test_set)
                                                                                            
     return net, acc
@@ -407,26 +404,22 @@ def perturb_weights_and_retrain(master_path,data,lamda,n,p,batch_size=128,new_tr
         print('## Generating student model {} ##'.format(i+1))
         
         # load master model
-        model = load_model(os.path.join(master_path),'')
+        model = load_model(DEVICE, os.path.join(master_path),'')
         master_acc = accuracy(model,data,FLAGS.test_set)
         print("test acc of master model (%): {:.3f}".format(master_acc))
         rep=0
         while True:
-            model = load_model(os.path.join(master_path),'')
-            
-        
+            model = load_model(DEVICE, os.path.join(master_path),'')
             for param_tensor in model.state_dict():
-                
                 shape = model.state_dict()[param_tensor].size()
-                
                 # laplace mechanism
-                if device == "cuda":
+                if DEVICE == "cuda":
                     try:
                         model.state_dict()[param_tensor]+= torch.cuda.FloatTensor(np.random.laplace(loc=0.0, scale=lamda, size=shape))
                     except RuntimeError:
                         model.state_dict()[param_tensor]+= torch.cuda.LongTensor(np.random.laplace(loc=0.0, scale=lamda, size=shape))
                 else:
-                    model.state_dict()[param_tensor]+= np.random.laplace(loc=0.0, scale=lamda, size=shape)
+                    model.state_dict()[param_tensor]+= torch.tensor(np.random.laplace(loc=0.0, scale=lamda, size=shape),dtype=torch.float32).to(DEVICE) # make sure weights are in fp32, as MPS does not support fp64
             acc = accuracy(model,data,FLAGS.test_set)
             rep+=1
             if acc>10:
@@ -441,17 +434,16 @@ def perturb_weights_and_retrain(master_path,data,lamda,n,p,batch_size=128,new_tr
         trans_shift = 0.1+(random()*(0.2-0.1)) #scaled value = min + (value * (max - min))
         rot_deg = 10+(random()*(20-10))
         transform=torchvision.transforms.RandomAffine(degrees=rot_deg, translate=(trans_shift,trans_shift))
-        
-        
+
         epoch=0
         while True:
             if epoch%5==0:
                 old_acc=acc
             epoch+=1
             if new_train==False:
-                model, acc = retrain(model,data,device,1,batch_size=FLAGS.batch,transform=None,adversarial=False)
+                model, acc = retrain(model,data,DEVICE,1,batch_size=FLAGS.batch,transform=None,adversarial=False)
             else:
-                model, acc = retrain(model,data,device,1,batch_size=FLAGS.batch,transform=transform,adversarial=False)
+                model, acc = retrain(model,data,DEVICE,1,batch_size=FLAGS.batch,transform=transform,adversarial=False)
             if acc < old_acc:
                 old_acc=acc
             print("Accuracy of student model after {} epochs of retraining (%): {:.3f}".format(epoch,acc))
@@ -459,8 +451,7 @@ def perturb_weights_and_retrain(master_path,data,lamda,n,p,batch_size=128,new_tr
                 print('Old_acc :',old_acc)
                 if acc >= np.floor(master_acc) or acc-old_acc<0.5:
                     break
-     
-    
+
         print("Acc of student model {} after retraining (%): {:.3f}".format(i+1,acc))
         
         if i >= n-p:
@@ -475,7 +466,7 @@ def perturb_weights_and_retrain(master_path,data,lamda,n,p,batch_size=128,new_tr
             print("Robustness of student model {} before adversarial training (%) is {:.3f}".format(i+1,old_rob))
             while True:
                 epoch+=1
-                model, acc = retrain(model,data,device,1,batch_size=FLAGS.batch,transform=transform,adversarial=True)
+                model, acc = retrain(model,data,DEVICE,1,batch_size=FLAGS.batch,transform=transform,adversarial=True)
                 rob = robustness(model,data,1000,batch_size,attack='FGS')
                 it +=1
                 if rob > max_rob:
@@ -489,8 +480,7 @@ def perturb_weights_and_retrain(master_path,data,lamda,n,p,batch_size=128,new_tr
                     old_rob=rob
                 if it >= FLAGS.max_iter and rob >=max_rob:
                     break
-                
-                
+
                 print("Robustness of student model after {} epochs of adversarial training (%) is {:.3f} with acc={:.3f}".format(epoch,rob,acc))
             
             print("Acc of student model {} after retraining (%): {:.3f}".format(i+1,acc))
@@ -509,19 +499,16 @@ def perturb_weights_and_retrain(master_path,data,lamda,n,p,batch_size=128,new_tr
     
 def predict1(x):
     ''' predict the labels of a set x using conf-weighted scheduling of MTD'''
-    
-    
     models=[]
     for i in range(1,FLAGS.n+1):
-        models.append(load_model(os.path.join(cwd,FLAGS.data+"_models_"+''.join(str(FLAGS.lamda).split('.'))+'_'+str(FLAGS.p)+'_'+FLAGS.models_batch),i))
+        models.append(load_model(DEVICE, os.path.join(cwd,FLAGS.data+"_models_"+''.join(str(FLAGS.lamda).split('.'))+'_'+str(FLAGS.p)+'_'+FLAGS.models_batch),i))
     
     i=0
     y_probs=[]
     for model in models:
-        if device == "cuda":
-            model = model.cuda()
+        model.to(DEVICE)
         model.eval()
-        x=x.to(device)
+        x=x.to(DEVICE)
         
         if i==0:
             y_probs = model(x)
@@ -539,13 +526,12 @@ def transferability(attack,data,size,batch_size=128):
     transf=[] # list of average transferabilities for each student model
     models=[]
     for i in range(1,FLAGS.n+1):
-        models.append(load_model(os.path.join(cwd,FLAGS.data+"_models_"+''.join(str(FLAGS.lamda).split('.'))+'_'+str(FLAGS.p)),i))
+        models.append(load_model(DEVICE, os.path.join(cwd,FLAGS.data+"_models_"+''.join(str(FLAGS.lamda).split('.'))+'_'+str(FLAGS.p)),i))
     
     
     
     for i in range(len(models)):
-        if device == "cuda":
-            models[i] = models[i].cuda()
+        models[i].to(DEVICE)
         models[i].eval()
         
         print('performing {} attack on model {}'.format(attack,i+1))
@@ -554,15 +540,14 @@ def transferability(attack,data,size,batch_size=128):
         transfi=[] # transferability of model i across all student models using using all adv data
         for j in range(len(models)):
             if j != i:
-                if device == "cuda":
-                    models[j] = models[j].cuda()
+                models[j].to(DEVICE)
                 models[j].eval()
                 
                 tot=0 # total of adv samples on model i
                 s=0 # sum of transferable samples for model j
                 for b_i in range(0,x_adv.shape[0],batch_size):
                     x, y = get_batch(x_adv,y_adv, b_i, batch_size)
-                    x, y = x.to(device), y.to(device)
+                    x, y = x.to(DEVICE), y.to(DEVICE)
                     _, y_predi = models[i](x).max(1)
                     resi = y_predi.eq(y)
                     
@@ -659,14 +644,13 @@ class Morphence():
                     for i in range(1,self.n+1):
                         try:
                             #models.append(load_model(os.path.join(cwd,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(FLAGS.p)),i))
-                            models.append(load_model(os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi)),i))
+                            models.append(load_model(DEVICE, os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi)),i))
                         except FileNotFoundError:
                             raise('model {} is not found'.format(i))
                             
                     print('### Responding to queries from {} to {} using models pool {}'.format(self.nb_queries+1,self.nb_queries + x.shape[0],self.starting_batch[0]+str(int(self.starting_batch[1])+qi)))
                     for model in models:
-                        if device == "cuda":
-                            model = model.cuda()
+                        model.to(DEVICE)
                         model.eval()
                         y_probs.append(model(x))
                 
@@ -680,37 +664,29 @@ class Morphence():
                         print('And responding to queries from {} to {} using models pool {}'.format(self.queries[qi+1]+1,self.nb_queries + x.shape[0],self.starting_batch[0]+str(int(self.starting_batch[1])+qi+1)))
                     for i in range(1,self.n+1):
                         try:
-                            models1.append(load_model(os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi)),i))
+                            models1.append(load_model(DEVICE, os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi)),i))
                         except FileNotFoundError:
                             raise('model {} is not found'.format(i))
                             
                         if self.queries[qi+1] < self.test_size:
                             try:
-                                models2.append(load_model(os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi+1)),i))
+                                models2.append(load_model(DEVICE, os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi+1)),i))
                             except FileNotFoundError:
                                 raise('model {} is not found'.format(i))
                                 
                     if self.queries[qi+1] < self.test_size:
                         for model1,model2 in zip(models1,models2):
-                            if device == "cuda":
-                                model1 = model1.cuda()
-                                model2 = model2.cuda()
+                            model1.to(DEVICE)
+                            model2.to(DEVICE)
                             model1.eval()
-                            model2.eval()
-                            
+                            model2.eval()   
                             y_probs.append(torch.cat((model1(x1),model2(x2)),dim=0))
                     else:
-                        
                         for model1 in models1:
-                            if device == "cuda":
-                                model1 = model1.cuda()
-                                
+                            model1.to(DEVICE)
                             model1.eval()
                             y_probs.append(model1(x))
-                            
-        
-            
-        
+
         # update number of queries                       
         self.nb_queries += x.shape[0]
         
@@ -780,14 +756,13 @@ class Morphence():
                     for i in range(1,self.n+1):
                         try:
                             #models.append(load_model(os.path.join(cwd,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(FLAGS.p)),i))
-                            models.append(load_model(os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi)),i))
+                            models.append(load_model(DEVICE, os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi)),i))
                         except FileNotFoundError:
                             raise ValueError('model {} is not found'.format(i))
                             
                     print('### Responding to queries from {} to {} using models pool {}'.format(self.nb_queries+1,self.nb_queries + x.shape[0],self.starting_batch[0]+str(int(self.starting_batch[1])+qi)))
                     for model in models:
-                        if device == "cuda":
-                            model = model.cuda()
+                        model.to(DEVICE)
                         model.eval()
                         y_probs.append(model(x))
                 
@@ -801,37 +776,29 @@ class Morphence():
                         print('And responding to queries from {} to {} using models pool {}'.format(self.queries[qi+1]+1,self.nb_queries + x.shape[0],self.starting_batch[0]+str(int(self.starting_batch[1])+qi+1)))
                     for i in range(1,self.n+1):
                         try:
-                            models1.append(load_model(os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi)),i))
+                            models1.append(load_model(DEVICE, os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi)),i))
                         except FileNotFoundError:
                             raise ValueError('model {} is not found'.format(i))
                             
                         if self.queries[qi+1] < self.test_size:
                             try:
-                                models2.append(load_model(os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi+1)),i))
+                                models2.append(load_model(DEVICE, os.path.join(cwd,'experiments',self.data,self.data+"_models_"+''.join(str(self.lamda).split('.'))+'_'+str(self.n)+'_'+self.starting_batch[0]+str(int(self.starting_batch[1])+qi+1)),i))
                             except FileNotFoundError:
                                 raise ValueError('model {} is not found'.format(i))
                                 
                     if self.queries[qi+1] < self.test_size:
                         for model1,model2 in zip(models1,models2):
-                            if device == "cuda":
-                                model1 = model1.cuda()
-                                model2 = model2.cuda()
+                            model1.to(DEVICE)
+                            model2.to(DEVICE)
                             model1.eval()
                             model2.eval()
-                            
                             y_probs.append(torch.cat((model1(x1),model2(x2)),dim=0))
-                    else:
-                        
+                    else:                        
                         for model1 in models1:
-                            if device == "cuda":
-                                model1 = model1.cuda()
-                                
+                            model1.to(DEVICE)
                             model1.eval()
                             y_probs.append(model1(x))
-                            
-        
-            
-        
+
         # update number of queries                       
         self.nb_queries += x.shape[0]
 
@@ -869,8 +836,7 @@ class Morphence():
         '''
         y_probs=[]
         for model in models:
-            if device == "cuda":
-                model = model.cuda()
+            model.to(DEVICE)
             model.eval()
             #print('predicting')
             #print(len(model(x)))
@@ -926,7 +892,7 @@ def test_base(_):
     data = load_data()#train=False
     
     # test undefended master model without attack
-    master_model=load_model(cwd,'')
+    master_model=load_model(DEVICE, cwd,'')
     
     if FLAGS.attack=='NoAttack':
         print('Acc of master model ',accuracy(master_model,data,FLAGS.test_set,model_type='master'))
@@ -940,7 +906,7 @@ def test_adv(_):
     data = load_data()#train=False
     
     # test undefended master model without attack
-    model=load_model(cwd,'')
+    model=load_model(DEVICE, cwd,'')
     
     old_acc = accuracy(model,data,FLAGS.test_set,model_type='master')
     start_time = time.time()
@@ -953,7 +919,7 @@ def test_adv(_):
     print("Robustness before adversarial training (%) is {:.3f}".format(old_rob))
     while True:
         epoch+=1
-        model, acc = retrain(model,data,device,1,batch_size=FLAGS.batch,adversarial=True)
+        model, acc = retrain(model,data,DEVICE,1,batch_size=FLAGS.batch,adversarial=True)
         rob = robustness(model,data,1000,batch_size=FLAGS.batch,attack='FGS')
         it +=1
         if rob > max_rob:
